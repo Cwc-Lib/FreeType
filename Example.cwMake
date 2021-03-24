@@ -1,6 +1,6 @@
 ;Register Cwc before using a .cwmake
 >
--{_sOpt}="Debug"
+-{_sOpt}="OS"
 >
 -{_wToolchain}= VLianceTool/LibRT
 >
@@ -28,8 +28,9 @@
 	
 	-DFT_THROW_PRINT
 	
-	
+	;-DFT_DEBUG_LEVEL_ERROR
 	;-DFT_DEBUG_LEVEL_TRACE
+	
 	;-DHAVE_MEMCPY
 	;-DFT_MAKE_OPTION_SINGLE_OBJECT
 	;-DFT_LOAD_TARGET_LCD
