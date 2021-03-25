@@ -90,12 +90,15 @@
 -o {pObjLib} -#To {pLibDir}libFreeType.a
 >
 ;Build Example
--c Example/Test.cpp -o {pObj}Example/Test.o	 -{vFlag}
+-c Example/ -o {pObj}Example/ 
+	-{vFlag}
+	-I Example/
 >
 ;Link
 -o {pObj}Example/ -#To {pOut}FreeType.exe
 	-L {pLibDir}
 	-lFreeType
+	-lgdi32
 >
 -#Run
 >
