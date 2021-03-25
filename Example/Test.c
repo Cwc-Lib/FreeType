@@ -9,6 +9,7 @@
 HINSTANCE xe_hInstance = 0;
 
 #define ShowPixView
+//#define USE_Transparent_PixView
 #include "Xternal/Xternal.h"
 #include "XE/XEGI.h"
 
@@ -22,6 +23,7 @@ HINSTANCE xe_hInstance = 0;
 
 
 unsigned char image[HEIGHT][WIDTH];
+uint32_t pixels[HEIGHT][WIDTH];
 
 
 void
@@ -41,7 +43,16 @@ draw_bitmap( FT_Bitmap*  bitmap,
            i >= WIDTH || j >= HEIGHT )
         continue;
 
-      image[j][i] |= bitmap->buffer[q * bitmap->width + p];
+	  unsigned char _gray = bitmap->buffer[q * bitmap->width + p];
+	  
+      image[j][i] |= _gray;
+	  
+	  
+
+	  //pixels[j][i] |= _gray | (_gray<<8)| (_gray<<16); //0xAARRGGGBB
+	  //pixels[j][i] |= bitmap->buffer[q * bitmap->width + p] ; //0xAARRGGGBB
+	  //pixels[j][i] |= _gray ; //0xAARRGGGBB
+	  pixels[j][i] |= 0xFF000000 | _gray | (_gray<<8)| (_gray<<16);  //0xAARRGGGBB //|= because glyph overlap
     }
   }
 }
@@ -83,10 +94,7 @@ int WINAPI
  
 		  
 		  
-	int idx = Create_context((ContextInf){.width=800, .height=600});
 
-	Blit_context(idx, (uint32_t*)image, 800);
-	  
 		  
 		  
 		  
@@ -160,9 +168,21 @@ int WINAPI
     pen.x += slot->advance.x;
     pen.y += slot->advance.y;
   }
+  
+  //	int idx = Create_context((ContextInf){.width=WIDTH/4, .height=HEIGHT/4});
+	//Blit_context(idx, (uint32_t*)image, WIDTH/4*3);
+	  
+	int idx = Create_context((ContextInf){.width=WIDTH, .height=HEIGHT});
+	Blit_context(idx, (uint32_t*)pixels, WIDTH);
+	  
 
+//pixels
   show_image();
-
+  
+	while(1){
+		Sleep(1);
+	}
+	
   FT_Done_Face    ( face );
   FT_Done_FreeType( library );
 
