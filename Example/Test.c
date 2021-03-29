@@ -17,6 +17,8 @@ HINSTANCE xe_hInstance = 0;
 #include <ft2build.h>
 //#include <freetype.h>
 #include "freetype/freetype.h"
+#include "freetype/ftlcdfil.h"
+
 
 #define WIDTH   640
 #define HEIGHT  480
@@ -35,6 +37,26 @@ draw_bitmap( FT_Bitmap*  bitmap,
   FT_Int  x_max = x + bitmap->width;
   FT_Int  y_max = y + bitmap->rows;
 
+/*
+for (Tindex y = 0; y < bitmap.rows; y++)
+{
+    Tindex row = rowStartPos + y;
+    for (Tindex x = 0; x < bitmap.width; x++)
+    {
+        Tindex col = colStartPos + x;
+        uint8_t r = bitmap.buffer[y * bitmap.pitch + x*3];
+        uint8_t g = bitmap.buffer[y * bitmap.pitch + x*3 + 1];
+        uint8_t b = bitmap.buffer[y * bitmap.pitch + x*3 + 2];
+        img(col, row) = pixel{r, g, b, 255};
+        // img and pixel are placeholders to simplify the code
+    }
+}
+*/
+
+
+
+
+
   for ( i = x, p = 0; i < x_max; i++, p++ )
   {
     for ( j = y, q = 0; j < y_max; j++, q++ )
@@ -46,13 +68,21 @@ draw_bitmap( FT_Bitmap*  bitmap,
 	  unsigned char _gray = bitmap->buffer[q * bitmap->width + p];
 	  
       image[j][i] |= _gray;
-	  
-	  
-
 	  //pixels[j][i] |= _gray | (_gray<<8)| (_gray<<16); //0xAARRGGGBB
 	  //pixels[j][i] |= bitmap->buffer[q * bitmap->width + p] ; //0xAARRGGGBB
 	  //pixels[j][i] |= _gray ; //0xAARRGGGBB
 	  pixels[j][i] |= 0xFF000000 | _gray | (_gray<<8)| (_gray<<16);  //0xAARRGGGBB //|= because glyph overlap
+	  
+	  
+	   uint8_t r = bitmap->buffer[y * bitmap->pitch + x*3];
+        uint8_t g = bitmap->buffer[y * bitmap->pitch + x*3 + 1];
+        uint8_t b = bitmap->buffer[y * bitmap->pitch + x*3 + 2];
+	  
+	    image[j][i] |= (r<<16) | (g<<8) | b;
+	  
+	  
+	  
+	  
     }
   }
 }
@@ -149,13 +179,21 @@ int WINAPI
   pen.x = 30 * 64;
   pen.y = ( target_height - 200 ) * 64 - 12000;
 
+
+  FT_Library_SetLcdFilter( library, FT_LCD_FILTER_DEFAULT);
+
+
   for ( n = 0; n < num_chars; n++ )
   {
     // set transformation
     FT_Set_Transform( face, &matrix, &pen );
 
+// FT_PIXEL_MODE_LCD
     //load glyph image into the slot (erase previous one)
-    error = FT_Load_Char( face, text[n], FT_LOAD_RENDER );
+	//FT_RENDER_MODE_LCD
+    error = FT_Load_Char( face, text[n], FT_LOAD_RENDER | FT_LCD_FILTER_DEFAULT );
+   // error = FT_Load_Char( face, text[n], FT_LOAD_RENDER  );
+  //  error = FT_Load_Char( face, text[n], FT_LOAD_RENDER  );
     if ( error )
       continue;                 // ignore errors
 
