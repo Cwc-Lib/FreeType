@@ -30,12 +30,12 @@ uint32_t pixels[HEIGHT][WIDTH];
 
 void
 draw_bitmap( FT_Bitmap*  bitmap,
-             FT_Int      x,
-             FT_Int      y)
+             FT_Int      _x,
+             FT_Int      _y)
 {
   FT_Int  i, j, p, q;
-  FT_Int  x_max = x + bitmap->width;
-  FT_Int  y_max = y + bitmap->rows;
+  FT_Int  x_max = _x + bitmap->width;
+  FT_Int  y_max = _y + bitmap->rows;
 
 /*
 for (Tindex y = 0; y < bitmap.rows; y++)
@@ -53,10 +53,27 @@ for (Tindex y = 0; y < bitmap.rows; y++)
 }
 */
 
+	printf("\nbitmap->pixel_mode: %d \n", bitmap->pixel_mode  );
+	printf("\nFT_PIXEL_MODE_MONO: %d \n", FT_PIXEL_MODE_MONO  );
+	printf("\n bitmap->pitch  %d \n", bitmap->pitch  );
+	printf("\n bitmap->width  %d \n", bitmap->width  );
+	printf("\n bitmap->rows  %d \n", bitmap->rows  );
 
+  for ( int y = 0; y < bitmap->rows; y++ ){
+	 for ( int x = 0; x < bitmap->width; x+=3 ){
+		if(bitmap->buffer != 0 ){
+			uint8_t r = bitmap->buffer[y*bitmap->pitch + x+0];
+			uint8_t g = bitmap->buffer[y*bitmap->pitch + x+1];
+			uint8_t b = bitmap->buffer[y*bitmap->pitch + x+2];
+			
+			//if(_y + y < HEIGHT &&_x +x < WIDTH){
+				pixels[_y + y][_x +x/3 ] |=  (r<<16) | (g<<8) | b;
+			//}
+		}
+	}
+  }
 
-
-
+/*
   for ( i = x, p = 0; i < x_max; i++, p++ )
   {
     for ( j = y, q = 0; j < y_max; j++, q++ )
@@ -67,24 +84,22 @@ for (Tindex y = 0; y < bitmap.rows; y++)
 
 	  unsigned char _gray = bitmap->buffer[q * bitmap->width + p];
 	  
-      image[j][i] |= _gray;
+      //image[j][i] |= _gray;
 	  //pixels[j][i] |= _gray | (_gray<<8)| (_gray<<16); //0xAARRGGGBB
 	  //pixels[j][i] |= bitmap->buffer[q * bitmap->width + p] ; //0xAARRGGGBB
 	  //pixels[j][i] |= _gray ; //0xAARRGGGBB
-	  pixels[j][i] |= 0xFF000000 | _gray | (_gray<<8)| (_gray<<16);  //0xAARRGGGBB //|= because glyph overlap
+	//  pixels[j][i] |= 0xFF000000 | _gray | (_gray<<8)| (_gray<<16);  //0xAARRGGGBB //|= because glyph overlap
 	  
 	  
-	   uint8_t r = bitmap->buffer[y * bitmap->pitch + x*3];
-        uint8_t g = bitmap->buffer[y * bitmap->pitch + x*3 + 1];
-        uint8_t b = bitmap->buffer[y * bitmap->pitch + x*3 + 2];
+	   uint8_t r = bitmap->buffer[q * bitmap->pitch + p*3];
+        uint8_t g = bitmap->buffer[q * bitmap->pitch + p*3 + 1];
+        uint8_t b = bitmap->buffer[q * bitmap->pitch + p*3 + 2];
 	  
-	    image[j][i] |= (r<<16) | (g<<8) | b;
-	  
-	  
-	  
-	  
+	    pixels[j][i] |= (r<<16) | (g<<8) | b;
     }
   }
+  */
+  
 }
 
 
@@ -180,7 +195,8 @@ int WINAPI
   pen.y = ( target_height - 200 ) * 64 - 12000;
 
 
-  FT_Library_SetLcdFilter( library, FT_LCD_FILTER_DEFAULT);
+  //FT_Library_SetLcdFilter( library, FT_LCD_FILTER_DEFAULT);
+  FT_Library_SetLcdFilter( library, FT_LCD_FILTER_LIGHT);
 
 
   for ( n = 0; n < num_chars; n++ )
@@ -191,7 +207,8 @@ int WINAPI
 // FT_PIXEL_MODE_LCD
     //load glyph image into the slot (erase previous one)
 	//FT_RENDER_MODE_LCD
-    error = FT_Load_Char( face, text[n], FT_LOAD_RENDER | FT_LCD_FILTER_DEFAULT );
+	//FT_LCD_FILTER_DEFAULT 
+    error = FT_Load_Char( face, text[n], FT_LOAD_RENDER | FT_LOAD_TARGET_LCD );
    // error = FT_Load_Char( face, text[n], FT_LOAD_RENDER  );
   //  error = FT_Load_Char( face, text[n], FT_LOAD_RENDER  );
     if ( error )
