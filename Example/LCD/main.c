@@ -55,7 +55,6 @@ draw_bitmap( FT_Bitmap*  bitmap,
 	FT_Int  y_max = _y + bitmap->rows;
 
 	printf("\nbitmap->pixel_mode: %d \n", bitmap->pixel_mode  );
-	printf("\nFT_PIXEL_MODE_MONO: %d \n", FT_PIXEL_MODE_MONO  );
 	printf("\n bitmap->pitch  %d \n", bitmap->pitch  );
 	printf("\n bitmap->width  %d \n", bitmap->width  );
 	printf("\n bitmap->rows  %d \n", bitmap->rows  );
@@ -100,7 +99,7 @@ int WINAPI
 	//text          = argv[2];                           // second argument
 
 	filename = (char*)"c:/windows/fonts/arial.ttf";
-	text = (char*)"GZE Embed FreeType!";
+	text = (char*)"LCD Freetype Render!";
 
 
 	num_chars     = strlen( text );
@@ -130,7 +129,6 @@ int WINAPI
 	pen.x = 30 * 64;
 	pen.y = ( target_height - 200 ) * 64 - 12000;
 
-	//FT_Library_SetLcdFilter( library, FT_LCD_FILTER_DEFAULT);
 	FT_Library_SetLcdFilter( library, FT_LCD_FILTER_LIGHT);
 
 	for ( n = 0; n < num_chars; n++ )
