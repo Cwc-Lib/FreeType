@@ -300,7 +300,7 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 	return 0;
 }
 
-HWND pixView_createWindow( HINSTANCE hInstance, ContextInf* _context) {
+HWND pixView_createWindow( ContextInf* _context) {
 
   HANDLE thread = CreateThread(NULL, 0, (void*)pixView_createWindow_thread, _context, 0, NULL);
   if (thread) {
