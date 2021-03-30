@@ -35,7 +35,7 @@ ContextInf* Blit_context(uint32_t _idx, const void* _pixels, int _SrcWidth){ //T
 
 	
 		// aContext[idx].width & SrcWidth may differ (+32pix for depth buffer?)
-		pixView_MakeSurface(&aContext[_idx]);
+	//	pixView_MakeSurface(&aContext[_idx]);
 		uint32_t* pix_src = (uint32_t*)_pixels;
 		uint32_t* pix_dest = (uint32_t*)aContext[_idx].pixels;
 		
