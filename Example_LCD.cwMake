@@ -90,12 +90,12 @@
 -o {pObjLib} -#To {pLibDir}libFreeType.a
 >
 ;Build Example
--c Example/ -o {pObj}Example/ 
+-c Example/LCD/ -o {pObj}Example/LCD/
 	-{vFlag}
-	-I Example/
+	-I Example/LCD/
 >
 ;Link
--o {pObj}Example/ -#To {pOut}FreeType.exe
+-o {pObj}Example/LCD/ -#To {pOut}FreeType.exe
 	-L {pLibDir}
 	-lFreeType
 	-lgdi32
