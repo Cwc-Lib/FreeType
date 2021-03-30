@@ -34,7 +34,6 @@ HINSTANCE xe_hInstance = 0;
 #include "XE/XEGI.h"
 
 #include <ft2build.h>
-//#include <freetype.h>
 #include "freetype/freetype.h"
 #include "freetype/ftlcdfil.h"
 
