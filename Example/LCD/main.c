@@ -1,3 +1,23 @@
+ /*  -== Freetype LCD example ==-
+ *
+ * Example Using rendering LCD glyph using PixView from XE-Loader (the context to draw in)
+ *
+ *  @autors
+ *   - Maeiky
+ *  
+ * Copyright (c) 2021 - V·Liance
+ *
+ * The contents of this file are subject to the Apache License Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * If a copy of the Apache License Version 2.0 was not distributed with this file,
+ * You can obtain one at https://www.apache.org/licenses/LICENSE-2.0.html
+ *
+* Description:
+* 
+* Some utils function to view pixels from memory, 
+* we need to create window to view visually the memory
+*
+*/
 
 #include <stdio.h>
 #include <string.h>
