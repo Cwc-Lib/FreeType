@@ -305,8 +305,8 @@ HWND pixView_createWindow( HINSTANCE hInstance, ContextInf* _context) {
   HANDLE thread = CreateThread(NULL, 0, (void*)pixView_createWindow_thread, _context, 0, NULL);
   if (thread) {
   
-	CRITICAL_SECTION _ct;
-	InitializeCriticalSection(&_ct);
+	static CRITICAL_SECTION _ct = {};
+	if(!_ct.DebugInfo){InitializeCriticalSection(&_ct);}
 	EnterCriticalSection(&_ct);
 	{
 		while(!bTh_Surface_ready){ //Wait for _context fill & creation (be sure to not modify *_context data while this thread as not finished is initialisation)
@@ -315,14 +315,13 @@ HWND pixView_createWindow( HINSTANCE hInstance, ContextInf* _context) {
 		bTh_Surface_ready = false;
 	}
 	LeaveCriticalSection(&_ct);
-	DeleteCriticalSection(&_ct);
   }
   return _context->hwnd_View;
 }
 
 void pixView_update(ContextInf* _context){
-	CRITICAL_SECTION _ct;
-	InitializeCriticalSection(&_ct);
+	static CRITICAL_SECTION _ct = {};
+	if(!_ct.DebugInfo){InitializeCriticalSection(&_ct);}
 	EnterCriticalSection(&_ct);
 	{
 		upd_pixview = _context;
@@ -330,6 +329,5 @@ void pixView_update(ContextInf* _context){
 			Sleep(1);
 		}
 	LeaveCriticalSection(&_ct);
-	DeleteCriticalSection(&_ct);
   }
 }
