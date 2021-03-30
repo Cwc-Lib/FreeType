@@ -52,6 +52,17 @@ LRESULT CALLBACK WndProc( HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
       }
       break;
 	  
+ case WM_SYSCOMMAND :
+      {
+			switch ( (int)wParam ) {
+			case SC_RESTORE:{
+				//TODO
+			  }
+			  break;
+		}
+      }
+      break;
+	  
   case WM_LBUTTONDOWN:
 		aSysMsg(add,(XEGI_SysMsg){.handle=h, .type=XEGI_Msg_(LBUTTONDOWN)});
 		bLButtonDown = true;
@@ -85,15 +96,12 @@ LRESULT CALLBACK WndProc( HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
         PostQuitMessage( 0 );
       }
       break;
-    default:
-      return DefWindowProc( hwnd, msg, wParam, lParam );
   }
-  return 0;
+	return DefWindowProc( hwnd, msg, wParam, lParam );
 }
 
 ContextInf* upd_pixview = 0;
-bool bUpd_pixview = false;	 //FIXME: AtomicBool
-bool bSurface_ready = false; //FIXME: AtomicBool
+bool bTh_Surface_ready = false;
 
 static void draw_square(uint32_t _color, uint32_t* _pix, int _lsize, int _posx, int _posy, int _width, int _height, int inc){
 	int y = _height-1;
@@ -266,13 +274,13 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 	int last_height = _context->height;
 	pixView_MakeSurface(_context);
 	
-	bSurface_ready = true;
+	bTh_Surface_ready = true;
 
 	ShowWindow( hwnd, SW_SHOWDEFAULT );
 	
 	MSG _msg;
 	while (1){
-		if(bUpd_pixview){
+		if(upd_pixview == _context){
 			if(last_width != _context->width || last_height != _context->height){
 				last_width  = _context->width;
 				last_height = _context->height;
@@ -280,7 +288,7 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 				pixView_MakeSurface(_context);
 			}
 			pixView_update_thread(upd_pixview);
-			bUpd_pixview = false;
+			upd_pixview = 0;
 		}
 		
 		while ( PeekMessageA(&_msg, 0, 0, 0, PM_REMOVE) > 0 ) {
@@ -296,14 +304,32 @@ HWND pixView_createWindow( HINSTANCE hInstance, ContextInf* _context) {
 
   HANDLE thread = CreateThread(NULL, 0, (void*)pixView_createWindow_thread, _context, 0, NULL);
   if (thread) {
-	while(!bSurface_ready){ //Wait for _context fill & creation (be sure to not modify *_context data while this thread as not finished is initialisation)
-		Sleep(1);
+  
+	CRITICAL_SECTION _ct;
+	InitializeCriticalSection(&_ct);
+	EnterCriticalSection(&_ct);
+	{
+		while(!bTh_Surface_ready){ //Wait for _context fill & creation (be sure to not modify *_context data while this thread as not finished is initialisation)
+			Sleep(1);
+		}
+		bTh_Surface_ready = false;
 	}
+	LeaveCriticalSection(&_ct);
+	DeleteCriticalSection(&_ct);
   }
   return _context->hwnd_View;
 }
 
 void pixView_update(ContextInf* _context){
-	upd_pixview = _context;
-	bUpd_pixview = true;
+	CRITICAL_SECTION _ct;
+	InitializeCriticalSection(&_ct);
+	EnterCriticalSection(&_ct);
+	{
+		upd_pixview = _context;
+		while(upd_pixview){ //Wait for _context update (be sure to not modify *_context data while this thread as not finished is update)
+			Sleep(1);
+		}
+	LeaveCriticalSection(&_ct);
+	DeleteCriticalSection(&_ct);
+  }
 }
