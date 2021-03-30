@@ -20,16 +20,9 @@
 *
 */
 
-struct pixel {
-  union {
-	struct {unsigned char b, g, r, a;};
-    int val;
-  };
-};
-
- float pixView_mouse_x  = 0;
- float pixView_mouse_y  = 0;
- bool bLButtonDown  = false;
+float pixView_mouse_x  = 0;  //FIXME: AtomicInt
+float pixView_mouse_y  = 0;	 //FIXME: AtomicInt
+bool bLButtonDown  = false;  //FIXME: AtomicBool
  
 #ifdef USE_Transparent_PixView
 	#define WIN_BORDER_T 20
@@ -98,20 +91,9 @@ LRESULT CALLBACK WndProc( HWND hwnd,UINT msg,WPARAM wParam,LPARAM lParam){
   return 0;
 }
 
-//#include <windows.h>
-DWORD WINAPI ThreadFunc(void* data) {
-  // Do stuff.  This will be the first function called on the new thread.
-  // When this function returns, the thread goes away.  See MSDN for more details.
-  return 0;
-}
-
-
 ContextInf* upd_pixview = 0;
-bool bUpd_pixview = false;
-bool bSurface_ready = false;
-
-
-
+bool bUpd_pixview = false;	 //FIXME: AtomicBool
+bool bSurface_ready = false; //FIXME: AtomicBool
 
 static void draw_square(uint32_t _color, uint32_t* _pix, int _lsize, int _posx, int _posy, int _width, int _height, int inc){
 	int y = _height-1;
@@ -175,11 +157,6 @@ void pixView_MakeSurface(ContextInf* _context){
 	draw_square(0xFFAA0000,  _context->pixels,_context->mem_width, _context->mem_width-25,10, 10, 3,2);
 }
 
-void pixView_update(ContextInf* _context){
-	upd_pixview = _context;
-	bUpd_pixview = true;
-}
-
 void pixView_update_thread(ContextInf* _context){
 
 	HWND _hwnd = (HWND)_context->hwnd_View;
@@ -214,19 +191,19 @@ void pixView_update_thread(ContextInf* _context){
  
 	SelectObject( hdcMem, hbmOld );
 	DeleteObject(hdcMem);
-	//DeleteDC( hdc );
 	ReleaseDC( _hwnd, hdc );
 }
 
-
-
-//HWND pixView_createWindow_thread( HINSTANCE hInstance, ContextInf* _context){
-DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
-	
+void set_ContextRealSize(ContextInf* _context){
 	_context->mem_width  = _context->width+ WIN_BORDER_L + WIN_BORDER_R;
 	_context->mem_height = _context->height+ WIN_BORDER_T + WIN_BORDER_B;
 	_context->off_y = WIN_BORDER_T;
 	_context->off_x = WIN_BORDER_L;
+}
+
+
+DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
+	set_ContextRealSize(_context);
 
 	HINSTANCE hInstance = GetModuleHandle(NULL);
 	
@@ -252,7 +229,6 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 		}
 		class_registred = true;
 	}
-
 
 	HWND hwnd = CreateWindowEx(
 		#ifdef USE_Transparent_PixView
@@ -284,11 +260,12 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 		MoveWindow( hwnd, rcWindow.left, rcWindow.top, _context->mem_width + ptDiff.x, _context->mem_height + ptDiff.y, false);
 	#endif
 	
-	//int _nTitleOffset = fClientResize(hWnd, _oWindow->vFrame.nWidth, _oWindow->vFrame.nHeight); //Set correct client size
-	//ClipOrCenterWindowToMonitor(hWnd, MONITOR_CENTER | MONITOR_WORKAREA, _nTitleOffset);
-
 	_context->hwnd_View = hwnd;
+	
+	int last_width  = _context->width;
+	int last_height = _context->height;
 	pixView_MakeSurface(_context);
+	
 	bSurface_ready = true;
 
 	ShowWindow( hwnd, SW_SHOWDEFAULT );
@@ -296,6 +273,12 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 	MSG _msg;
 	while (1){
 		if(bUpd_pixview){
+			if(last_width != _context->width || last_height != _context->height){
+				last_width  = _context->width;
+				last_height = _context->height;
+				set_ContextRealSize(_context);
+				pixView_MakeSurface(_context);
+			}
 			pixView_update_thread(upd_pixview);
 			bUpd_pixview = false;
 		}
@@ -306,21 +289,21 @@ DWORD WINAPI pixView_createWindow_thread(ContextInf* _context) {
 		}
 		Sleep(1);
 	}
-	return hwnd;
+	return 0;
 }
 
-
 HWND pixView_createWindow( HINSTANCE hInstance, ContextInf* _context) {
-	
-	//TODO make a _context copy? 
-	
-  HANDLE thread = CreateThread(NULL, 0, pixView_createWindow_thread, _context, 0, NULL);
+
+  HANDLE thread = CreateThread(NULL, 0, (void*)pixView_createWindow_thread, _context, 0, NULL);
   if (thread) {
-	while(!bSurface_ready){
+	while(!bSurface_ready){ //Wait for _context fill & creation (be sure to not modify *_context data while this thread as not finished is initialisation)
 		Sleep(1);
 	}
-    // Optionally do stuff, such as wait on the thread.
   }
-  return _context->hwnd_View; //TODO better way
-  
+  return _context->hwnd_View;
+}
+
+void pixView_update(ContextInf* _context){
+	upd_pixview = _context;
+	bUpd_pixview = true;
 }
